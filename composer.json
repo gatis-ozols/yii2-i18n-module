@@ -26,7 +26,7 @@
     },
     "require": {
         "yiisoft/yii2": "~2",
-        "zelenin/yii2-semantic-ui": "*"
+        "yiisoft/yii2-bootstrap": "~2.0.0"
     },
     "autoload": {
         "psr-4": {
