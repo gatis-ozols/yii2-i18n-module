@@ -22,10 +22,14 @@ echo Breadcrumbs::widget(['links' => [
         <?php $form = ActiveForm::begin(); ?>
         <?= $form->errorSummary($model) ?>
         <?php foreach ($model->messages as $language => $message) : ?>
-            <div class="four wide column">
-                <?= $form->field($model->messages[$language], '[' . $language . ']translation')->label($language) ?>
-            </div>
+            <?= $form->field($model->messages[$language], '[' . $language . ']translation')->label($language) ?>
+            <a href="https://translate.google.com/#view=home&op=translate&sl=<?= \Yii::$app->sourceLanguage ?>&tl=<?= $language ?>&text=<?= $model->message ?>" class="btn btn-default btn-sm" role="button" target="_blank">
+                <i class="glyphicon glyphicon-globe"></i>
+                <?= Module::t('Google Translate to') ?>&nbsp;<?= $language ?>
+            </a>
         <?php endforeach; ?>
+        <br />
+        <br />
         <?= Html::submitButton(Module::t('Update'), ['class' => 'btn btn-success']) ?>
         <?php $form::end(); ?>
     </div>
