@@ -34,7 +34,7 @@ class SourceMessageSearch extends SourceMessage
      */
     public function search($params)
     {
-        $query = SourceMessage::find();
+        $query = SourceMessage::find()->with('messages');
         $dataProvider = new ActiveDataProvider(['query' => $query]);
 
         if (!($this->load($params) && $this->validate())) {
