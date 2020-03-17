@@ -49,7 +49,7 @@ class SourceMessageSearch extends SourceMessage
         }
 
         $query
-            ->andFilterWhere(['like', 'category', $this->category]);
+            ->andFilterWhere(['=', 'category', $this->category]);
         if($this->message !== '' && trim($this->message) !== '') {
             $subquery = Message::find()->select('id')->where(['like', 'translation', $this->message]);
             $query->andWhere([
