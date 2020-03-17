@@ -26,7 +26,7 @@ echo Breadcrumbs::widget(['links' => [
                 <?= $form->field($model->messages[$language], '[' . $language . ']translation')->label($language) ?>
             </div>
         <?php endforeach; ?>
-        <?= Html::submitButton(Module::t('Update'), ['class' => 'ui primary button']) ?>
+        <?= Html::submitButton(Module::t('Update'), ['class' => 'btn btn-success']) ?>
         <?php $form::end(); ?>
     </div>
 </div>
