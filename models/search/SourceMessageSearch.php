@@ -16,16 +16,72 @@ class SourceMessageSearch extends SourceMessage
 
     public $status;
 
+    protected static $dynamicFields;
+    protected static $dynamicLabels;
+
+    public static function getHasFieldAlias($language)
+    {
+        return 'has_'.$language;
+    }
+
+    protected static function getMessageTableAlias($language)
+    {
+        return 'm_'.$language;
+    }
+
+    public static function getDynamicFields()
+    {
+        if(!isset(self::$dynamicFields)) {
+            self::$dynamicFields = [];
+            foreach (Yii::$app->getI18n()->languages as $language) {
+                self::$dynamicFields[] = self::getHasFieldAlias($language);
+            }
+        }
+        return self::$dynamicFields;
+    }
+
+    public static function getDynamicLabels()
+    {
+        if(!isset(self::$dynamicLabels)) {
+            self::$dynamicLabels = [];
+            foreach (Yii::$app->getI18n()->languages as $language) {
+                self::$dynamicLabels[self::getHasFieldAlias($language)] = $language;
+            }
+        }
+        return self::$dynamicLabels;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributes()
+    {
+        return ArrayHelper::merge(parent::attributes(), self::getDynamicFields());
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return ArrayHelper::merge(parent::attributeLabels(), self::getDynamicLabels());
+    }
+
     /**
      * @inheritdoc
      */
     public function rules()
     {
-        return [
+        $rules = [
             ['category', 'safe'],
             ['message', 'safe'],
             ['status', 'safe']
         ];
+
+        $rules[] = [self::getDynamicFields(), 'safe'];
+        $rules[] = [self::getDynamicFields(), 'boolean'];
+
+        return $rules;
     }
 
     /**
@@ -34,10 +90,44 @@ class SourceMessageSearch extends SourceMessage
      */
     public function search($params)
     {
-        $query = SourceMessage::find()->with('messages');
+        $query = self::find()->with('messages');
+
+        $messageTableName = Message::tableName();
+
+        $query->select(self::tableName() . '.*');
+        
+        $isValid = ($this->load($params) && $this->validate());
+
+        $i = 0;
+        foreach (Yii::$app->getI18n()->languages as $language) {
+            $alias = self::getMessageTableAlias($language);
+            $fieldAlias = self::getHasFieldAlias($language);
+
+            $query->leftJoin($messageTableName . ' ' . $alias, $alias . '.id = ' . self::tableName() . '.id and ' . $alias . '.language = :language'.$i, [':language'.$i => $language]);
+            $query->addSelect([new \yii\db\Expression('CASE WHEN ' . $alias . '.translation IS NOT NULL AND ' . $alias . '.translation != \'\' THEN true ELSE false END AS `' . $fieldAlias . '`')]);
+
+            if($isValid) {
+                $val = $this->getAttribute($fieldAlias);
+                if($val !== '') {
+                    if($val === '1') {
+                        $query->andWhere(['not', [$alias . '.translation' => null]]);
+                        $query->andWhere(['not', [$alias . '.translation' => '']]);
+                    }
+                    else {
+                        $query->andWhere(['or',
+                            [$alias . '.translation' => null],
+                            [$alias . '.translation' => '']
+                        ]);
+                    }
+                }
+            }
+
+            $i++;
+        }
+
         $dataProvider = new ActiveDataProvider(['query' => $query]);
 
-        if (!($this->load($params) && $this->validate())) {
+        if (!$isValid) {
             return $dataProvider;
         }
 
@@ -55,7 +145,7 @@ class SourceMessageSearch extends SourceMessage
             $query->andWhere([
                 'or',
                 ['like', 'message', $this->message],
-                ['in', 'id', $subquery]
+                ['in', self::tableName().'.id', $subquery]
             ]);
         }
         return $dataProvider;
