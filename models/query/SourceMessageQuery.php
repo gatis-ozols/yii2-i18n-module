@@ -16,9 +16,9 @@ class SourceMessageQuery extends ActiveQuery
         $i = 0;
         foreach (Yii::$app->getI18n()->languages as $language) {
             if ($i === 0) {
-                $query->andWhere($messageTableName . '.language = :language and ' . $messageTableName . '.translation is not null', [':language' => $language]);
+                $query->andWhere($messageTableName . '.language = :language' . $i . ' and ' . $messageTableName . '.translation is not null and ' . $messageTableName . '.translation != \'\'', [':language'.$i => $language]);
             } else {
-                $query->innerJoin($messageTableName . ' t' . $i, 't' . $i . '.id = ' . $messageTableName . '.id and t' . $i . '.language = :language and t' . $i . '.translation is not null', [':language' => $language]);
+                $query->innerJoin($messageTableName . ' t' . $i, 't' . $i . '.id = ' . $messageTableName . '.id and t' . $i . '.language = :language' . $i . ' and t' . $i . '.translation is not null and t' . $i . '.translation != \'\'', [':language'.$i => $language]);
             }
             $i++;
         }
