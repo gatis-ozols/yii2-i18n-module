@@ -28,16 +28,14 @@ class SourceMessageQuery extends ActiveQuery
     public function notTranslated()
     {
         $query = self::translatedMessageIdsQuery();
-        $ids = $query->indexBy('id')->all();
-        $this->andWhere(['not in', SourceMessage::tableName().'.id', array_keys($ids)]);
+        $this->andWhere(['not in', SourceMessage::tableName().'.id', $query]);
         return $this;
     }
 
     public function translated()
     {
         $query = self::translatedMessageIdsQuery();
-        $ids = $query->indexBy('id')->all();
-        $this->andWhere(['in', SourceMessage::tableName().'.id', array_keys($ids)]);
+        $this->andWhere(['in', SourceMessage::tableName().'.id', $query]);
         return $this;
     }
 }
