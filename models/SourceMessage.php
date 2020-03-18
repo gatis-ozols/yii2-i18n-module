@@ -103,6 +103,6 @@ class SourceMessage extends ActiveRecord
                 return false;
             }
         }
-        return true;
+        return count($this->messages) == count(Yii::$app->getI18n()->languages);
     }
 }
